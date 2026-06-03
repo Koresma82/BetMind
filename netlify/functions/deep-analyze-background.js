@@ -22,18 +22,30 @@ function extractJSON(txt) {
   return null;
 }
 
-async function callDeep(prompt, system) {
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+async function callDeep(prompt, system, attempt = 1) {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-beta': 'web-search-2025-03-05' },
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 12000,
+      max_tokens: 8000,
       system,
-      tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 12 }],
+      tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 6 }],
       messages: [{ role: 'user', content: prompt }]
     })
   });
+
+  // Rate limit (429): espera e tenta de novo (é background, há tempo). Até 3 tentativas.
+  if (res.status === 429 && attempt <= 3) {
+    const retryAfter = parseInt(res.headers.get('retry-after') || '0', 10);
+    const waitMs = (retryAfter > 0 ? retryAfter : 60) * 1000;
+    console.log(`Rate limit. A esperar ${waitMs/1000}s antes da tentativa ${attempt+1}...`);
+    await sleep(waitMs);
+    return callDeep(prompt, system, attempt + 1);
+  }
+
   const data = await res.json();
   if (!res.ok) throw new Error(data?.error?.message || `Erro Anthropic ${res.status}`);
   const txt = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');

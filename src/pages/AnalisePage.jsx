@@ -118,14 +118,14 @@ export default function AnalisePage() {
       ? `Foca-te APENAS nestas modalidades escolhidas: ${selCats.join(', ')}.`
       : '';
     const modalidadesDefault = selCats.length ? '' : `Modalidades: Futebol (Liga Portugal, Premier, La Liga, Serie A, Bundesliga, Ligue 1, Champions/Europa/Conference), Ténis (ATP/WTA), Basquetebol (NBA/Euroliga), Andebol, Hóquei (NHL/KHL), Rugby, MMA/Boxe.`;
-    // Quando há 2+ modalidades, pedimos também 2 apostas múltiplas (segura + arrojada)
-    const multiplas = selCats.length >= 2 ? `
+    // Pedimos SEMPRE duas apostas múltiplas (combinando jogos diferentes, mesmo da mesma modalidade)
+    const multiplas = `
 
-Como há várias modalidades, cria também DUAS apostas MÚLTIPLAS (acumuladores), cada uma com 2-4 seleções de jogos DIFERENTES:
+Cria também DUAS apostas MÚLTIPLAS (acumuladores), cada uma com 2-4 seleções de JOGOS DIFERENTES (podem ser todos da mesma modalidade):
 - "segura": só seleções de confiança alta (≥70%), odd combinada mais baixa mas mais provável.
 - "arrojada": seleções de odd mais alta / confiança média, maior risco e maior retorno.
-Para cada múltipla calcula a odd combinada (multiplicação das odds) e uma confiança honesta do conjunto.` : '';
-    const multiplasSchema = selCats.length >= 2 ? `,
+Para cada múltipla calcula a odd combinada (multiplicação das odds) e uma confiança honesta do conjunto. Usa jogos distintos da lista de eventos.`;
+    const multiplasSchema = `,
   "multiplas": {
     "segura": {
       "selecoes": [{"jogo": "Benfica vs Porto", "mercado": "Mais de 1.5 Golos", "odd": "1.30", "confianca": 80}],
@@ -135,7 +135,7 @@ Para cada múltipla calcula a odd combinada (multiplicação das odds) e uma con
       "selecoes": [{"jogo": "X vs Y", "mercado": "Vitória X", "odd": "2.10", "confianca": 58}],
       "odd_combinada": "4.40", "confianca_conjunto": 45, "racional": "porquê vale o risco"
     }
-  }` : '';
+  }`;
     return `
 Hoje é ${today} (${todayISO}).
 

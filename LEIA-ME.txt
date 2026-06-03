@@ -1,30 +1,37 @@
 ═══════════════════════════════════════════════════════
-  Remover Análise Rápida + Apostas Múltiplas
+  Múltiplas SEMPRE + retry de rate limit
 ═══════════════════════════════════════════════════════
 
-MUDANÇAS (só 1 ficheiro: src/pages/AnalisePage.jsx)
+2 FICHEIROS ALTERADOS
 
-1) ANÁLISE RÁPIDA REMOVIDA
-   • Ficou só um botão "🔍 ANALISAR" (a antiga profunda, que corre no
-     servidor com pesquisa real). A rápida sem pesquisa dava resultados
-     fracos, por isso saiu.
-   • LEMBRETE: a análise corre em BACKGROUND no Netlify — só funciona
-     PUBLICADA (betmindai.netlify.app), não em localhost/netlify dev.
+1) src/pages/AnalisePage.jsx
+   • As MÚLTIPLAS passam a ser geradas SEMPRE (não só com 2+
+     modalidades). Combina jogos diferentes, mesmo todos da mesma
+     modalidade — ex.: uma múltipla só de futebol.
+   • Aparecem no topo dos resultados (🛡️ Segura e 🚀 Arrojada), cada
+     uma com seleções, odd combinada e botão "Apostar nesta múltipla".
 
-2) APOSTAS MÚLTIPLAS
-   • Quando escolhes 2+ modalidades, a análise inclui DUAS múltiplas:
-     - 🛡️ Segura: seleções de confiança alta (≥70%), odd combinada menor.
-     - 🚀 Arrojada: odds mais altas, mais risco e retorno.
-   • Cada múltipla mostra as seleções, odd combinada e racional, com
-     botão "Apostar nesta múltipla" → abre o mesmo modal (escolhes casa,
-     valor, confirmas a odd combinada).
+2) netlify/functions/deep-analyze-background.js
+   • RETRY automático no rate limit: se a Anthropic responder 429
+     ("30,000 input tokens per minute"), a função espera (respeitando
+     o retry-after, ~60s) e tenta de novo, até 3 vezes. Como corre em
+     background (até 15 min), pode esperar sem problema.
+   • Reduzi max_tokens (12000→8000) e pesquisas (12→6) para gastar
+     menos tokens e bater menos no limite.
+
+PORQUE VIAS O ERRO MAS TAMBÉM RESULTADOS
+   Os 8 eventos que viste eram da análise ANTERIOR (guardada). A
+   tentativa nova bateu no rate limit e falhou — daí o erro vermelho
+   por cima de dados antigos. Com o retry, a nova análise espera o
+   limite e completa.
 
 APLICAR
-  Substitui src/pages/AnalisePage.jsx pelo teu.
-  git add . && git commit -m "remover rapida + apostas multiplas" && git push
+   Substitui os 2 ficheiros. git add . && git commit -m "multiplas sempre + retry rate limit" && git push
+   Testa em betmindai.netlify.app (a análise só corre publicada).
 
-PORQUE A RÁPIDA NÃO FUNCIONAVA
-  Sem pesquisa web, o modelo não tinha dados de jogos reais de hoje e
-  recusava/dava lixo. A profunda resolve isso porque pesquisa mesmo —
-  mas precisa do tempo das background functions, daí só correr publicada.
+NOTA SOBRE O RATE LIMIT
+   Estás no tier inicial da Anthropic (30k tokens/min). O retry
+   contorna picos pontuais, mas se analisares muitas vezes seguidas
+   vais continuar a esbarrar. A solução definitiva é subir de tier:
+   https://console.anthropic.com/settings/billing
 ═══════════════════════════════════════════════════════
