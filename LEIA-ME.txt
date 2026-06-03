@@ -1,0 +1,106 @@
+═══════════════════════════════════════════════════════
+<<<<<<< HEAD
+  BetMind PRO — apostas a partir das sugestões + validação
+═══════════════════════════════════════════════════════
+
+⚠️ SEGREDOS: este pacote NÃO inclui os teus .env (.env, .env.dev,
+.env.local) por segurança. Mantém os que já tens na tua pasta.
+Só substitui os ficheiros de código.
+
+═══ O QUE FOI ADICIONADO ═══
+
+1) ESCOLHER MODALIDADE ANTES DE ANALISAR
+   • Botão "🔎 Ver modalidades de hoje" → a IA lista as modalidades
+     com eventos (pesquisa leve). Escolhes 1-3 com os chips e só então
+     corres a Análise Rápida ou Profunda, focada nessas modalidades.
+   • Menos tokens (ajuda o rate limit) e resultados mais relevantes.
+
+2) PERSISTÊNCIA
+   • A última análise (dia e liga) é guardada no Firestore e
+     recarregada ao abrir a página. Já não desaparece ao mudar de tab.
+
+3) BOTÃO "APOSTAR" EM CADA MERCADO
+   • À frente da % de confiança. Abre um modal com:
+     - odd pré-preenchida da análise (confirmas/corriges sempre)
+     - dropdown das tuas casas de apostas (mostra saldo)
+     - valor a apostar, com retorno e lucro calculados
+   • Grava a aposta com a origem (IA), confiança e modalidade.
+
+4) VALIDAÇÃO DAS TUAS APOSTAS
+   • Automática à meia-noite (valida TODAS as pendentes, de qualquer dia).
+   • Manual: botão "✓ Validar as minhas apostas pendentes" na tab IA.
+   • A IA pesquisa os resultados reais e marca won/lost/void.
+
+5) SALDO E ESTATÍSTICAS DAS CASAS
+   • Saldo = inicial − apostado − pendentes (em risco) + retorno das ganhas.
+     (debita ao apostar; credita o retorno total quando ganha)
+   • No Relatório: lucro/ROI por casa, crescimento %, por modalidade,
+     desempenho das sugestões IA e acerto por banda de confiança.
+
+═══ FICHEIROS NOVOS ═══
+  src/components/BetModal.jsx               (modal de aposta)
+  netlify/functions/_listbets.js            (ler/atualizar apostas via REST)
+  netlify/functions/_betvalidation.js       (lógica de validação de apostas)
+  netlify/functions/validate-bets-now.js    (validação manual)
+  netlify/functions/validate-bets-scheduled.js (validação à meia-noite)
+
+═══ VARIÁVEIS NO NETLIFY (lembrete) ═══
+  ANTHROPIC_API_KEY, FIREBASE_PROJECT_ID=betmind-ee0ce,
+  ALLOWED_EMAIL=koresma@gmail.com, ALLOWED_ORIGIN=https://betmindai.netlify.app,
+  ALLOWED_UID=<o teu uid>, FIREBASE_SERVICE_ACCOUNT=<json>,
+  e as VITE_FIREBASE_*
+
+═══ DEPLOY ═══
+  git add . && git commit -m "apostas + validacao + categorias" && git push
+  (confirma com `git status` que NENHUM .env aparece na lista)
+
+NOTA: a Análise Rápida não usa pesquisa web (evita o rate limit de
+30k tokens/min do teu tier). Para dados verificados, usa a Profunda.
+=======
+  CORREÇÃO — imports em falta (PrevisoesPage / tab IA)
+═══════════════════════════════════════════════════════
+
+O ERRO
+  "db.js does not provide an export named 'computePredictionSummary'"
+  + getPredictionResults + validateNow
+
+PORQUÊ
+  Os patches anteriores substituíram ficheiros isolados e o projeto
+  ficou dessincronizado: o PrevisoesPage.jsx pedia funções que o
+  db.js / api.js já não tinham. Também faltavam 3 functions no backend
+  (o teu terminal só mostrava ai-analyze, _validation, _verify).
+
+O QUE ESTE PACOTE FAZ
+  Repõe os ficheiros em falta, todos coerentes entre si.
+
+FICHEIROS (substitui pelos teus, mesmos caminhos)
+
+  src/lib/db.js
+     + getPredictionResults()     ← lia os resultados da tab IA
+     + computePredictionSummary() ← agrega taxas de acerto
+     (mantém computeStats, getDeepAnalysis, etc.)
+
+  src/lib/api.js
+     + savePrediction()   ← guarda previsões para validar
+     + validateNow()      ← botão "validar agora"
+     (mantém callFast, startDeep)
+
+  netlify/functions/  (estas FALTAVAM)
+     save-prediction.js       ← grava previsão no Firestore
+     validate-now.js          ← validação manual
+     validate-predictions.js  ← validação automática (meia-noite)
+     _validation.js           ← lógica partilhada
+     _verify.js, _firestore.js, package.json  ← dependências
+
+APLICAR
+  1) Copia tudo para o teu projeto (mantém os caminhos).
+  2) Pára o netlify dev (Ctrl+C) e arranca outra vez: netlify dev
+     (é preciso reiniciar para ele detetar as novas functions)
+  3) O erro de import desaparece e a tab IA carrega.
+
+NOTA: as functions de validação escrevem no Firestore, por isso
+precisam de FIREBASE_SERVICE_ACCOUNT nas variáveis de ambiente
+(no .env local e no Netlify). Sem isso, a app abre na mesma — só
+a validação é que não grava.
+>>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf
+═══════════════════════════════════════════════════════

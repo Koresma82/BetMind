@@ -1,0 +1,70 @@
+<<<<<<< HEAD
+# ─────────────────────────────────────────────
+#  Dependências e build
+# ─────────────────────────────────────────────
+node_modules/
+dist/
+build/
+.vite/
+*.local
+
+# ─────────────────────────────────────────────
+#  Variáveis de ambiente — NUNCA commitar (têm a chave Anthropic
+#  e a service account). Cobre TODAS as variantes de .env.
+# ─────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ─────────────────────────────────────────────
+#  Credenciais / chaves privadas do Firebase
+# ─────────────────────────────────────────────
+*serviceAccount*.json
+*service-account*.json
+firebase-adminsdk*.json
+*-firebase-adminsdk-*.json
+*.pem
+*.key
+
+# ─────────────────────────────────────────────
+#  Netlify (cache local, DB local, dev state — 35M+, não vai para o repo)
+# ─────────────────────────────────────────────
+.netlify/
+
+# ─────────────────────────────────────────────
+#  Logs e caches
+# ─────────────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
+.eslintcache
+.cache/
+
+# ─────────────────────────────────────────────
+#  Sistema operativo
+# ─────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─────────────────────────────────────────────
+#  Editores / IDEs
+# ─────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+=======
+node_modules
+dist
+.env
+.env.local
+.env.*.local
+.netlify
+*serviceAccount*.json
+*service-account*.json
+firebase-adminsdk*.json
+.env.*
+>>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0e14" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <title>BetMind PRO</title>
+    <style>
+      :root {
+        /* Surfaces — escala de profundidade */
+        --bg:        #0a0e14;
+        --bg-2:      #0d1219;
+        --surface:   #11161f;
+        --surface-2: #161c27;
+        --surface-3: #1c2430;
+        --border:    rgba(255,255,255,0.07);
+        --border-2:  rgba(255,255,255,0.11);
+
+        /* Texto */
+        --text:      #eef2f7;
+        --text-2:    #9aa7b8;
+        --text-3:    #5d6b7f;
+        --text-4:    #3a4456;
+
+        /* Acentos */
+        --acc:       #00e58a;     /* esmeralda */
+        --acc-dim:   rgba(0,229,138,0.12);
+        --acc-glow:  rgba(0,229,138,0.25);
+        --blue:      #4d8dff;
+        --gold:      #ffc94d;
+        --orange:    #ff8a4d;
+        --red:       #ff4d6d;
+        --violet:    #b07dff;
+
+        --r:   16px;   /* radius cartão */
+        --r-sm: 11px;
+        --r-xs: 8px;
+
+        --font:  'Space Grotesk', system-ui, sans-serif;
+        --mono:  'JetBrains Mono', ui-monospace, monospace;
+
+        --shadow:   0 4px 24px rgba(0,0,0,0.4);
+        --shadow-lg: 0 12px 48px rgba(0,0,0,0.55);
+      }
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+      body {
+        background: var(--bg);
+        background-image:
+          radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0,229,138,0.06), transparent),
+          radial-gradient(ellipse 60% 40% at 90% 10%, rgba(77,141,255,0.04), transparent);
+        background-attachment: fixed;
+        color: var(--text);
+        font-family: var(--font);
+        font-feature-settings: 'ss01','cv01';
+      }
+      #root { min-height: 100vh; min-height: 100dvh; }
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 3px; }
+      ::-webkit-scrollbar-thumb:hover { background: #2a3340; }
+      ::selection { background: var(--acc-glow); color: #fff; }
+      button { font-family: var(--font); }
+      input, select, textarea { font-family: var(--mono); }
+      input:focus, select:focus, textarea:focus { outline: none; }
+
+      /* Animações globais */
+      @keyframes spin { to { transform: rotate(360deg) } }
+      @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:.35 } }
+      @keyframes fadeUp { from { opacity:0; transform: translateY(14px) } to { opacity:1; transform:none } }
+      @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
+      @keyframes shimmer { 0% { background-position: -200% 0 } 100% { background-position: 200% 0 } }
+      @keyframes glowPulse { 0%,100% { box-shadow: 0 0 0 0 var(--acc-glow) } 50% { box-shadow: 0 0 0 6px transparent } }
+
+      .stagger > * { opacity: 0; animation: fadeUp .5s cubic-bezier(.2,.7,.3,1) forwards; }
+      .stagger > *:nth-child(1){animation-delay:.02s} .stagger > *:nth-child(2){animation-delay:.06s}
+      .stagger > *:nth-child(3){animation-delay:.10s} .stagger > *:nth-child(4){animation-delay:.14s}
+      .stagger > *:nth-child(5){animation-delay:.18s} .stagger > *:nth-child(6){animation-delay:.22s}
+      .stagger > *:nth-child(7){animation-delay:.26s} .stagger > *:nth-child(8){animation-delay:.30s}
+
+      .card-hover { transition: transform .18s cubic-bezier(.2,.7,.3,1), border-color .18s, box-shadow .18s; }
+      .card-hover:hover { transform: translateY(-2px); border-color: var(--border-2); box-shadow: var(--shadow); }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

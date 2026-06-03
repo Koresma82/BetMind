@@ -1,0 +1,26 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+<<<<<<< HEAD
+# Validação automática das SUGESTÕES da IA — 00:10 Lisboa (~23:10 UTC)
+[functions.validate-predictions]
+  schedule = "10 23 * * *"
+
+# Validação automática das APOSTAS do utilizador — 00:20 Lisboa
+[functions.validate-bets-scheduled]
+  schedule = "20 23 * * *"
+
+=======
+>>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
