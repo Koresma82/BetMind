@@ -95,7 +95,6 @@ export default function RelatorioPage() {
               ))}
             </Card>
           )}
-<<<<<<< HEAD
 
           {stats.bySport && stats.bySport.length > 0 && (
             <Card style={{ marginTop: 16 }}>
@@ -130,8 +129,6 @@ export default function RelatorioPage() {
               )}
             </Card>
           )}
-=======
->>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf
         </>
       )}
     </div>

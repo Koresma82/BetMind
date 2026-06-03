@@ -75,7 +75,6 @@ export function computeStats(bets, bookmakers = []) {
     else                  { curL++; curW=0; maxLoss=Math.max(maxLoss,curL); }
   });
 
-<<<<<<< HEAD
   // By bookmaker — modelo: debita ao apostar (pendentes saem do saldo)
   const byBookmaker = bookmakers.map(bm => {
     const allBm     = bets.filter(b => b.bookmakerId === bm.id);
@@ -109,27 +108,6 @@ export function computeStats(bets, bookmakers = []) {
       pendingAmount: bmPending,
       // % de variação face ao saldo inicial
       growth: (bm.initialBudget||0) > 0 ? ((bmBalance - bm.initialBudget) / bm.initialBudget) * 100 : 0
-=======
-  // By bookmaker
-  const byBookmaker = bookmakers.map(bm => {
-    const bmBets    = settled.filter(b => b.bookmakerId === bm.id);
-    const bmWon     = bmBets.filter(b => b.status==='won');
-    const bmInv     = bmBets.reduce((s,b)=>s+(b.amount||0),0);
-    const bmRet     = bmWon.reduce((s,b)=>s+(b.amount||0)*(b.odd||1),0);
-    const bmProfit  = bmRet - bmInv;
-    const bmBalance = (bm.initialBudget||0) + bmProfit;
-    const bmPending = bets.filter(b=>b.bookmakerId===bm.id&&b.status==='pending')
-                         .reduce((s,b)=>s+(b.amount||0),0);
-    return {
-      ...bm,
-      betsCount: bmBets.length,
-      wonCount:  bmWon.length,
-      invested:  bmInv,
-      profit:    bmProfit,
-      balance:   bmBalance,
-      winRate:   bmBets.length > 0 ? (bmWon.length/bmBets.length)*100 : 0,
-      pendingAmount: bmPending
->>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf
     };
   });
 
@@ -146,7 +124,6 @@ export function computeStats(bets, bookmakers = []) {
     .map(m => ({ ...m, winRate: m.count>0?(m.won/m.count)*100:0, profit: m.returned-m.invested }))
     .sort((a,b) => b.profit - a.profit);
 
-<<<<<<< HEAD
   // By sport (modalidade)
   const sportMap = {};
   settled.forEach(b => {
@@ -185,8 +162,6 @@ export function computeStats(bets, bookmakers = []) {
   const worstBookmaker = [...byBookmaker].sort((a,b)=>a.profit-b.profit)[0] || null;
   const avgStakeAll = settled.length>0 ? totalInvested/settled.length : 0;
 
-=======
->>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf
   // By month
   const monthMap = {};
   settled.forEach(b => {
@@ -205,17 +180,11 @@ export function computeStats(bets, bookmakers = []) {
     total: bets.length, settled: settled.length, won: won.length,
     lost: lost.length, pending: pending.length,
     totalInvested, totalReturned, profit, roi, winRate,
-<<<<<<< HEAD
     avgOddWon, avgOddLost, pendingAmount, avgStakeAll,
     bestBet, worstBet, maxWinStreak: maxWin, maxLossStreak: maxLoss,
     byBookmaker, byMarket, byMonth, bySport,
     aiStats, byConfidence,
     totalBankInitial, totalBalance, bestBookmaker, worstBookmaker
-=======
-    avgOddWon, avgOddLost, pendingAmount,
-    bestBet, worstBet, maxWinStreak: maxWin, maxLossStreak: maxLoss,
-    byBookmaker, byMarket, byMonth
->>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf
   };
 }
 
@@ -261,7 +230,6 @@ export function computePredictionSummary(results) {
     })).sort((a, b) => b.total - a.total)
   };
 }
-<<<<<<< HEAD
 
 // ── Última análise (rápida/liga) — persiste entre mudanças de tab ──
 // Guardada por tipo: 'dia' ou 'liga'. Sobrevive a navegação e refrescos.
@@ -301,5 +269,3 @@ export async function getPendingBets(uid) {
   const snap = await getDocs(betsCol(uid));
   return snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(b => b.status === 'pending');
 }
-=======
->>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf

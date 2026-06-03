@@ -8,19 +8,11 @@ async function authHeader() {
 }
 
 // Análise RÁPIDA (function normal, ≤10s). Devolve a resposta crua da Anthropic.
-<<<<<<< HEAD
 export async function callFast(prompt, system, { maxTokens = 3000, maxSearches = 2, useWebSearch = true } = {}) {
   const res = await fetch('/.netlify/functions/ai-analyze', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ prompt, system, useWebSearch, maxTokens, maxSearches })
-=======
-export async function callFast(prompt, system, { maxTokens = 3000, maxSearches = 3 } = {}) {
-  const res = await fetch('/.netlify/functions/ai-analyze', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt, system, useWebSearch: true, maxTokens, maxSearches })
->>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf
   });
   const data = await res.json();
   if (!res.ok || data.error) throw new Error(data.error || `Erro ${res.status}`);
@@ -66,7 +58,6 @@ export async function validateNow(date) {
   if (!res.ok || data.error) throw new Error(data.error || `Erro ${res.status}`);
   return data;
 }
-<<<<<<< HEAD
 
 // Descobre que modalidades têm eventos hoje (pesquisa leve, rápida).
 export async function discoverCategories() {
@@ -90,5 +81,3 @@ export async function validateBetsNow() {
   if (!res.ok || data.error) throw new Error(data.error || `Erro ${res.status}`);
   return data;
 }
-=======
->>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf

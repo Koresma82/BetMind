@@ -1,13 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../App';
-<<<<<<< HEAD
 import { callFast, startDeep, discoverCategories } from '../lib/api';
 import { getDeepAnalysis, saveLastAnalysis, getLastAnalysis, getConfig, getAllBets, computeStats, placeBet } from '../lib/db';
 import BetModal from '../components/BetModal';
-=======
-import { callFast, startDeep } from '../lib/api';
-import { getDeepAnalysis } from '../lib/db';
->>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf
 
 const today    = new Date().toLocaleDateString('pt-PT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 const todayISO = new Date().toISOString().split('T')[0];
@@ -81,7 +76,6 @@ export default function AnalisePage() {
   const [err, setErr]     = useState('');
   const [filterSport, setFilterSport] = useState('');
   const [deepStatus, setDeepStatus] = useState(null); // null | 'running' | 'done' | 'error'
-<<<<<<< HEAD
   const [bookmakers, setBookmakers] = useState([]);
   const [betModal, setBetModal] = useState(null); // { jogo, market } | null
   const [betToast, setBetToast] = useState('');
@@ -127,23 +121,6 @@ Lista os jogos e eventos desportivos AGENDADOS para hoje (ou os mais prováveis)
 
 ${escopo}
 ${modalidadesDefault}
-=======
-  const pollRef = useRef(null);
-
-  const addLog = m => setLogs(p => [...p.slice(-12), m]);
-
-  // Constrói o prompt da análise. mode 'fast' = top 5 por modalidade, menos detalhe.
-  const buildDayPrompt = (mode) => {
-    const escopo = mode === 'fast'
-      ? `Dá o TOP 5 de cada uma destas modalidades principais (no máximo ~20 eventos no total): Futebol, Ténis, Basquetebol. Sê CONCISO — análise curta por evento, 1-2 mercados cada. Prioriza velocidade.`
-      : `Cobre o MÁXIMO de eventos possível (idealmente 12-20) em TODAS as modalidades: Futebol (Liga Portugal, Premier, La Liga, Serie A, Bundesliga, Ligue 1, Champions/Europa/Conference), Ténis (ATP/WTA), Basquetebol (NBA/Euroliga), Andebol, Hóquei (NHL/KHL), Rugby, MMA/Boxe. Análise detalhada por evento, vários mercados cada.`;
-    return `
-Hoje é ${today} (${todayISO}).
-
-Lista os jogos e eventos desportivos AGENDADOS para hoje (ou os mais prováveis). Usa pesquisa web para confirmar calendário, lesões e forma; quando a informação for incompleta, usa o teu conhecimento dos calendários e equipas e baixa a confiança (NÃO recuses).
-
-${escopo}
->>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf
 
 Para cada evento analisa o que conseguires: lesionados/ausentes, forma recente, H2H, fadiga, contexto, e odds reais aproximadas. Calcula confiança honesta 0-100 por mercado.
 
@@ -167,7 +144,6 @@ Responde APENAS com JSON válido, sem markdown:
 Ordena os jogos por confianca_maxima DECRESCENTE. Devolve APENAS o JSON.`;
   };
 
-<<<<<<< HEAD
   /* ── Passo 1: descobrir que modalidades há hoje ── */
   const descobrir = async () => {
     setDiscovering(true); setErr(''); setCats(null); setSelCats([]);
@@ -184,26 +160,16 @@ Ordena os jogos por confianca_maxima DECRESCENTE. Devolve APENAS o JSON.`;
 
   const toggleCat = (mod) => setSelCats(prev => prev.includes(mod) ? prev.filter(m=>m!==mod) : [...prev, mod]);
 
-=======
->>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf
   /* ── Análise RÁPIDA (top picks, cabe nos 10s) ── */
   const analisarRapido = async () => {
     setLoading(true); setResult(null); setErr(''); setLogs([]); setDeepStatus(null);
     try {
-<<<<<<< HEAD
       addLog('Análise rápida — sem pesquisa, resposta imediata…');
       const raw = await callFast(buildDayPrompt('fast'), SYSTEM_ANALISE, { maxTokens: 3500, useWebSearch: false });
       const data = parseAIResult(raw);
       if (data.jogos) data.jogos.sort((a,b) => (b.confianca_maxima||bestConf(b)) - (a.confianca_maxima||bestConf(a)));
       setResult(data);
       saveLastAnalysis(user.uid, 'dia', data).catch(() => {});
-=======
-      addLog('Análise rápida — top picks por modalidade…');
-      const raw = await callFast(buildDayPrompt('fast'), SYSTEM_ANALISE, { maxTokens: 3000, maxSearches: 3 });
-      const data = parseAIResult(raw);
-      if (data.jogos) data.jogos.sort((a,b) => (b.confianca_maxima||bestConf(b)) - (a.confianca_maxima||bestConf(a)));
-      setResult(data);
->>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf
       addLog(`${data.jogos?.length||0} eventos (rápida) ✓`);
     } catch(e) { setErr(e.message); }
     setLoading(false);
@@ -225,10 +191,7 @@ Ordena os jogos por confianca_maxima DECRESCENTE. Devolve APENAS o JSON.`;
             const data = doc.result;
             if (data.jogos) data.jogos.sort((a,b) => (b.confianca_maxima||bestConf(b)) - (a.confianca_maxima||bestConf(a)));
             setResult(data); setDeepStatus('done');
-<<<<<<< HEAD
             saveLastAnalysis(user.uid, 'dia', data).catch(() => {});
-=======
->>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf
             addLog(`${data.jogos?.length||0} eventos (profunda) ✓`);
           } else if (doc?.status === 'error') {
             clearInterval(pollRef.current);
@@ -242,7 +205,6 @@ Ordena os jogos por confianca_maxima DECRESCENTE. Devolve APENAS o JSON.`;
     } catch(e) { setDeepStatus('error'); setErr(e.message); }
   };
 
-<<<<<<< HEAD
   // Ao abrir a página, recarrega a última análise guardada (sobrevive a mudar de tab).
   useEffect(() => {
     let active = true;
@@ -260,9 +222,6 @@ Ordena os jogos por confianca_maxima DECRESCENTE. Devolve APENAS o JSON.`;
     })();
     return () => { active = false; if (pollRef.current) clearInterval(pollRef.current); };
   }, []);
-=======
-  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
->>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf
 
   /* ── Liga Portugal ── */
   const carregarLiga = async () => {
@@ -283,15 +242,10 @@ Responde APENAS com JSON válido:
   "assistentes":[{"pos":1,"jogador":"Nome","equipa":"Sporting","assistencias":10,"jogos":28}],
   "classificacao":[{"pos":1,"equipa":"Sporting","pontos":72,"jogos":30,"vitorias":22,"empates":6,"derrotas":2,"gm":58,"gs":18,"media_pts":2.4}],
   "liga_record_destaques":[{"jogador":"Nome","equipa":"Benfica","posicao":"AV","preco_estimado":"9M","forma":"⭐⭐⭐⭐⭐","motivo":"5 golos nos últimos 4 jogos"}]
-<<<<<<< HEAD
 }`, 'És um analista da Liga Portugal que devolve SEMPRE e APENAS JSON válido em português, a começar por "{" e a terminar por "}". NUNCA respondas com texto de desculpa. Se a pesquisa for limitada, usa o teu conhecimento da época e dos plantéis e preenche o JSON na mesma.', { maxTokens: 4000, maxSearches: 2 });
       const ligaData = parseAIResult(raw);
       setLiga(ligaData);
       saveLastAnalysis(user.uid, 'liga', ligaData).catch(() => {});
-=======
-}`, 'És um analista da Liga Portugal que devolve SEMPRE e APENAS JSON válido em português, a começar por "{" e a terminar por "}". NUNCA respondas com texto de desculpa. Se a pesquisa for limitada, usa o teu conhecimento da época e dos plantéis e preenche o JSON na mesma.', { maxTokens: 4000, maxSearches: 3 });
-      setLiga(parseAIResult(raw));
->>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf
     } catch(e) { setErr(e.message); }
     setLoading(false);
   };
@@ -323,7 +277,6 @@ Responde APENAS com JSON válido:
       {/* Buttons */}
       {tab==='dia' ? (
         <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:14 }}>
-<<<<<<< HEAD
           {/* Passo 1: descobrir modalidades */}
           <button onClick={descobrir} disabled={discovering||loading||deepStatus==='running'} style={{
             width:'100%', padding:'11px',
@@ -358,8 +311,6 @@ Responde APENAS com JSON válido:
           )}
 
           {/* Passo 2: analisar (rápida ou profunda) */}
-=======
->>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf
           <button onClick={analisarRapido} disabled={loading||deepStatus==='running'} style={{
             width:'100%', padding:'12px',
             background:'rgba(0,230,118,0.07)', border:'1px solid rgba(0,230,118,0.35)',
@@ -367,11 +318,7 @@ Responde APENAS com JSON válido:
             fontFamily:"'IBM Plex Mono',monospace", fontSize:12, letterSpacing:1,
             display:'flex', alignItems:'center', justifyContent:'center', gap:10
           }}>
-<<<<<<< HEAD
             {loading ? <><Spinner/>ANÁLISE RÁPIDA...</> : `⚡ ANÁLISE RÁPIDA${selCats.length?` (${selCats.length} modalidade${selCats.length>1?'s':''})`:' (imediata)'}`}
-=======
-            {loading ? <><Spinner/>ANÁLISE RÁPIDA...</> : '⚡ ANÁLISE RÁPIDA (top picks · ~10s)'}
->>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf
           </button>
           <button onClick={analisarProfundo} disabled={loading||deepStatus==='running'} style={{
             width:'100%', padding:'12px',
@@ -445,11 +392,7 @@ Responde APENAS com JSON válido:
             {jogosFiltered.length} EVENTOS · ORDENADOS POR CONFIANÇA ↓
           </div>
 
-<<<<<<< HEAD
           {jogosFiltered.map((j,i)=><MatchCard key={j.id||i} m={j} rank={i+1} onBet={openBet}/>)}
-=======
-          {jogosFiltered.map((j,i)=><MatchCard key={j.id||i} m={j} rank={i+1}/>)}
->>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf
         </div>
       )}
 
@@ -462,7 +405,6 @@ Responde APENAS com JSON válido:
         </div>
       )}
 
-<<<<<<< HEAD
       <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}} @keyframes spin{to{transform:rotate(360deg)}} @keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}} @keyframes fadeIn{from{opacity:0}to{opacity:1}}`}</style>
 
       <BetModal
@@ -481,19 +423,12 @@ Responde APENAS com JSON válido:
           fontSize:12, fontWeight:600, boxShadow:'0 8px 32px rgba(0,229,138,0.4)', maxWidth:'90%', textAlign:'center'
         }}>✓ {betToast}</div>
       )}
-=======
-      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}} @keyframes spin{to{transform:rotate(360deg)}} @keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}`}</style>
->>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf
     </div>
   );
 }
 
 /* ── Match Card ─────────────────────────────── */
-<<<<<<< HEAD
 function MatchCard({ m, rank, onBet }) {
-=======
-function MatchCard({ m, rank }) {
->>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf
   const [open, setOpen] = useState(false);
   const conf  = m.confianca_maxima || bestConf(m);
   const riskC = RSK_C[m.risco_geral]||'#8892a4';
@@ -596,7 +531,6 @@ function MatchCard({ m, rank }) {
                       <span style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:10, color:c, minWidth:30 }}>{b.confianca||0}%</span>
                     </div>
                   </div>
-<<<<<<< HEAD
                   <button onClick={()=>onBet && onBet(m, b)} style={{
                     alignSelf:'center', background:'rgba(0,230,118,0.1)', border:'1px solid rgba(0,230,118,0.4)',
                     borderRadius:7, padding:'7px 12px', color:'#00e676', cursor:'pointer',
@@ -606,8 +540,6 @@ function MatchCard({ m, rank }) {
                   onMouseEnter={e=>e.currentTarget.style.background='rgba(0,230,118,0.2)'}
                   onMouseLeave={e=>e.currentTarget.style.background='rgba(0,230,118,0.1)'}
                   >💸 Apostar</button>
-=======
->>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf
                 </div>
               );
             })}

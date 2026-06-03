@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # ─────────────────────────────────────────────
 #  Dependências e build
 # ─────────────────────────────────────────────
@@ -56,15 +55,3 @@ desktop.ini
 .idea/
 *.swp
 *.swo
-=======
-node_modules
-dist
-.env
-.env.local
-.env.*.local
-.netlify
-*serviceAccount*.json
-*service-account*.json
-firebase-adminsdk*.json
-.env.*
->>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf

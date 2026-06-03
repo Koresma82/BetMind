@@ -32,11 +32,7 @@ exports.handler = async (event) => {
 
     // Aborta antes do limite da Netlify para devolvermos um erro limpo (não "TimeoutErr")
     const controller = new AbortController();
-<<<<<<< HEAD
     const timer = setTimeout(() => controller.abort(), 24000);
-=======
-    const timer = setTimeout(() => controller.abort(), 9000);
->>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf
 
     let res, data;
     try {

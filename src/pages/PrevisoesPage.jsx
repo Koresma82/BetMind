@@ -1,11 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../App';
 import { getPredictionResults, computePredictionSummary } from '../lib/db';
-<<<<<<< HEAD
 import { validateNow, validateBetsNow } from '../lib/api';
-=======
-import { validateNow } from '../lib/api';
->>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf
 import { C, Card, Stat, Eyebrow, Bar, PageHeader, Loader, Empty, Button, Notice, Tag } from '../components/ui';
 
 const RES_C = { green: C.acc, red: C.red, void: C.text3 };
@@ -38,7 +34,6 @@ export default function PrevisoesPage() {
     setValidating(false);
   };
 
-<<<<<<< HEAD
   const runBets = async () => {
     setValidating(true); setErr(''); setMsg('');
     try {
@@ -48,26 +43,18 @@ export default function PrevisoesPage() {
     setValidating(false);
   };
 
-=======
->>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf
   if (loading) return <Loader />;
 
   return (
     <div className="stagger">
       <PageHeader eyebrow="Validação automática à meia-noite" title="Previsões IA" />
 
-<<<<<<< HEAD
       <div style={{ display: 'flex', gap: 9, marginBottom: 9 }}>
         <Button variant="ghost" full size="sm" disabled={validating} onClick={() => run(yesterdayISO())}>{validating ? 'A validar…' : '⟳ Validar sugestões (ontem)'}</Button>
         <Button variant="ghost" full size="sm" disabled={validating} onClick={() => run(todayISO())}>{validating ? '…' : '⟳ Hoje'}</Button>
       </div>
       <div style={{ marginBottom: 14 }}>
         <Button variant="primary" full size="sm" disabled={validating} onClick={runBets}>{validating ? 'A validar apostas…' : '✓ Validar as MINHAS apostas pendentes'}</Button>
-=======
-      <div style={{ display: 'flex', gap: 9, marginBottom: 14 }}>
-        <Button variant="ghost" full size="sm" disabled={validating} onClick={() => run(yesterdayISO())}>{validating ? 'A validar…' : '⟳ Validar ontem'}</Button>
-        <Button variant="ghost" full size="sm" disabled={validating} onClick={() => run(todayISO())}>{validating ? '…' : '⟳ Validar hoje'}</Button>
->>>>>>> 991199c57d225aefc13d574a27e0c072a1efefdf
       </div>
 
       {msg && <div style={{ marginBottom: 12 }}><Notice kind="success">{msg}</Notice></div>}
