@@ -94,6 +94,15 @@ export default function AnalisePage() {
   };
 
   const openBet = (jogo, market) => setBetModal({ jogo, market });
+  // Aposta numa múltipla: empacota as seleções como um único "jogo/mercado" para o modal.
+  const openMultiBet = (tipo, m) => {
+    const nomes = (m.selecoes||[]).map(s => s.jogo).join(' + ');
+    const mercadoDesc = (m.selecoes||[]).map(s => `${s.jogo}: ${s.mercado}`).join(' | ');
+    setBetModal({
+      jogo: { casa: `Múltipla ${tipo}`, fora: `${(m.selecoes||[]).length} seleções`, competicao: nomes, modalidade: 'Múltipla' },
+      market: { mercado: mercadoDesc, odd: m.odd_combinada, confianca: m.confianca_conjunto, sinal: tipo.toUpperCase() }
+    });
+  };
   const confirmBet = async (bet) => {
     await placeBet(user.uid, bet);
     await loadBookmakers();
@@ -104,14 +113,29 @@ export default function AnalisePage() {
   const addLog = m => setLogs(p => [...p.slice(-12), m]);
 
   // Constrói o prompt da análise. mode 'fast' = conciso; foca nas modalidades escolhidas.
-  const buildDayPrompt = (mode) => {
+  const buildDayPrompt = () => {
     const foco = selCats.length
       ? `Foca-te APENAS nestas modalidades escolhidas: ${selCats.join(', ')}.`
       : '';
-    const escopo = mode === 'fast'
-      ? `Dá os jogos/eventos mais relevantes de hoje. Sê CONCISO: 1-2 mercados por evento, contexto curto. Prioriza VELOCIDADE.`
-      : `Cobre o MÁXIMO de eventos possível (idealmente 12-20) com análise detalhada por evento, vários mercados cada.`;
     const modalidadesDefault = selCats.length ? '' : `Modalidades: Futebol (Liga Portugal, Premier, La Liga, Serie A, Bundesliga, Ligue 1, Champions/Europa/Conference), Ténis (ATP/WTA), Basquetebol (NBA/Euroliga), Andebol, Hóquei (NHL/KHL), Rugby, MMA/Boxe.`;
+    // Quando há 2+ modalidades, pedimos também 2 apostas múltiplas (segura + arrojada)
+    const multiplas = selCats.length >= 2 ? `
+
+Como há várias modalidades, cria também DUAS apostas MÚLTIPLAS (acumuladores), cada uma com 2-4 seleções de jogos DIFERENTES:
+- "segura": só seleções de confiança alta (≥70%), odd combinada mais baixa mas mais provável.
+- "arrojada": seleções de odd mais alta / confiança média, maior risco e maior retorno.
+Para cada múltipla calcula a odd combinada (multiplicação das odds) e uma confiança honesta do conjunto.` : '';
+    const multiplasSchema = selCats.length >= 2 ? `,
+  "multiplas": {
+    "segura": {
+      "selecoes": [{"jogo": "Benfica vs Porto", "mercado": "Mais de 1.5 Golos", "odd": "1.30", "confianca": 80}],
+      "odd_combinada": "1.69", "confianca_conjunto": 72, "racional": "porquê é sólida"
+    },
+    "arrojada": {
+      "selecoes": [{"jogo": "X vs Y", "mercado": "Vitória X", "odd": "2.10", "confianca": 58}],
+      "odd_combinada": "4.40", "confianca_conjunto": 45, "racional": "porquê vale o risco"
+    }
+  }` : '';
     return `
 Hoje é ${today} (${todayISO}).
 
@@ -119,8 +143,8 @@ ${foco}
 
 Lista os jogos e eventos desportivos AGENDADOS para hoje (ou os mais prováveis). Usa pesquisa web para confirmar calendário, lesões e forma; quando a informação for incompleta, usa o teu conhecimento dos calendários e equipas e baixa a confiança (NÃO recuses).
 
-${escopo}
-${modalidadesDefault}
+Cobre o MÁXIMO de eventos possível (idealmente 12-20) com análise detalhada por evento, vários mercados cada.
+${modalidadesDefault}${multiplas}
 
 Para cada evento analisa o que conseguires: lesionados/ausentes, forma recente, H2H, fadiga, contexto, e odds reais aproximadas. Calcula confiança honesta 0-100 por mercado.
 
@@ -139,7 +163,7 @@ Responde APENAS com JSON válido, sem markdown:
       "mercados": [{"mercado": "Mais de 2.5 Golos", "descricao": "justificação", "sinal": "FORTE", "confianca": 78, "odd": "1.85"}],
       "alerta": null
     }
-  ]
+  ]${multiplasSchema}
 }
 Ordena os jogos por confianca_maxima DECRESCENTE. Devolve APENAS o JSON.`;
   };
@@ -161,25 +185,11 @@ Ordena os jogos por confianca_maxima DECRESCENTE. Devolve APENAS o JSON.`;
   const toggleCat = (mod) => setSelCats(prev => prev.includes(mod) ? prev.filter(m=>m!==mod) : [...prev, mod]);
 
   /* ── Análise RÁPIDA (top picks, cabe nos 10s) ── */
-  const analisarRapido = async () => {
-    setLoading(true); setResult(null); setErr(''); setLogs([]); setDeepStatus(null);
-    try {
-      addLog('Análise rápida — sem pesquisa, resposta imediata…');
-      const raw = await callFast(buildDayPrompt('fast'), SYSTEM_ANALISE, { maxTokens: 3500, useWebSearch: false });
-      const data = parseAIResult(raw);
-      if (data.jogos) data.jogos.sort((a,b) => (b.confianca_maxima||bestConf(b)) - (a.confianca_maxima||bestConf(a)));
-      setResult(data);
-      saveLastAnalysis(user.uid, 'dia', data).catch(() => {});
-      addLog(`${data.jogos?.length||0} eventos (rápida) ✓`);
-    } catch(e) { setErr(e.message); }
-    setLoading(false);
-  };
-
   /* ── Análise PROFUNDA (background no servidor + polling) ── */
   const analisarProfundo = async () => {
     setErr(''); setDeepStatus('running'); addLog('Análise profunda iniciada no servidor (pode demorar 1-3 min)…');
     try {
-      await startDeep(todayISO, buildDayPrompt('deep'), SYSTEM_ANALISE);
+      await startDeep(todayISO, buildDayPrompt(), SYSTEM_ANALISE);
       // Polling ao Firestore a cada 6s
       let tries = 0;
       pollRef.current = setInterval(async () => {
@@ -310,27 +320,18 @@ Responde APENAS com JSON válido:
             </div>
           )}
 
-          {/* Passo 2: analisar (rápida ou profunda) */}
-          <button onClick={analisarRapido} disabled={loading||deepStatus==='running'} style={{
-            width:'100%', padding:'12px',
-            background:'rgba(0,230,118,0.07)', border:'1px solid rgba(0,230,118,0.35)',
-            borderRadius:10, color:'#00e676', cursor:(loading||deepStatus==='running')?'default':'pointer',
-            fontFamily:"'IBM Plex Mono',monospace", fontSize:12, letterSpacing:1,
-            display:'flex', alignItems:'center', justifyContent:'center', gap:10
-          }}>
-            {loading ? <><Spinner/>ANÁLISE RÁPIDA...</> : `⚡ ANÁLISE RÁPIDA${selCats.length?` (${selCats.length} modalidade${selCats.length>1?'s':''})`:' (imediata)'}`}
-          </button>
+          {/* Passo 2: analisar (profunda) */}
           <button onClick={analisarProfundo} disabled={loading||deepStatus==='running'} style={{
-            width:'100%', padding:'12px',
-            background:'rgba(77,141,255,0.07)', border:'1px solid rgba(77,141,255,0.35)',
+            width:'100%', padding:'14px',
+            background:'rgba(77,141,255,0.08)', border:'1px solid rgba(77,141,255,0.4)',
             borderRadius:10, color:'#4d8dff', cursor:(loading||deepStatus==='running')?'default':'pointer',
-            fontFamily:"'IBM Plex Mono',monospace", fontSize:12, letterSpacing:1,
+            fontFamily:"'IBM Plex Mono',monospace", fontSize:13, letterSpacing:1,
             display:'flex', alignItems:'center', justifyContent:'center', gap:10
           }}>
-            {deepStatus==='running' ? <><Spinner/>A PROCESSAR NO SERVIDOR...</> : '🔍 ANÁLISE PROFUNDA (completa · 1-3 min)'}
+            {deepStatus==='running' ? <><Spinner/>A PROCESSAR NO SERVIDOR...</> : `🔍 ANALISAR${selCats.length?` (${selCats.length} modalidade${selCats.length>1?'s':''})`:''}`}
           </button>
           <div style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:9.5, color:'#3a4456', textAlign:'center', lineHeight:1.5 }}>
-            A profunda corre no servidor e só funciona publicada no Netlify
+            A análise corre no servidor (1-3 min) e pesquisa dados reais.{selCats.length>1?' Com várias modalidades, inclui uma aposta múltipla.':''}
           </div>
         </div>
       ) : (
@@ -373,6 +374,15 @@ Responde APENAS com JSON válido:
               {result.resumo_dia && (
                 <div style={{ fontSize:13, color:'#6b7280', lineHeight:1.6, padding:'8px 12px', background:'rgba(255,255,255,0.02)', borderRadius:8 }}>📊 {result.resumo_dia}</div>
               )}
+            </div>
+          )}
+
+          {/* Apostas múltiplas (quando há várias modalidades) */}
+          {result.multiplas && (
+            <div style={{ marginBottom:14 }}>
+              <div style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:10, color:'#3a4255', letterSpacing:1.5, marginBottom:8 }}>🎰 APOSTAS MÚLTIPLAS SUGERIDAS</div>
+              {result.multiplas.segura && <MultiplaCard tipo="segura" m={result.multiplas.segura} onBet={openMultiBet} />}
+              {result.multiplas.arrojada && <MultiplaCard tipo="arrojada" m={result.multiplas.arrojada} onBet={openMultiBet} />}
             </div>
           )}
 
@@ -428,6 +438,54 @@ Responde APENAS com JSON válido:
 }
 
 /* ── Match Card ─────────────────────────────── */
+function MultiplaCard({ tipo, m, onBet }) {
+  const isSegura = tipo === 'segura';
+  const cor = isSegura ? '#00e676' : '#ff8a4d';
+  const conf = m.confianca_conjunto || 0;
+  return (
+    <div style={{
+      background:'rgba(255,255,255,0.025)', border:`1px solid ${cor}33`,
+      borderLeft:`3px solid ${cor}`, borderRadius:10, padding:14, marginBottom:8
+    }}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:10 }}>
+        <div>
+          <div style={{ display:'flex', alignItems:'center', gap:7 }}>
+            <span style={{ fontSize:14 }}>{isSegura?'🛡️':'🚀'}</span>
+            <span style={{ fontSize:14, fontWeight:600, color:'#e8ecf0' }}>Múltipla {isSegura?'Segura':'Arrojada'}</span>
+          </div>
+          <div style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:10, color:'#5d6b7f', marginTop:3 }}>
+            {(m.selecoes||[]).length} seleções · confiança {conf}%
+          </div>
+        </div>
+        <div style={{ textAlign:'right' }}>
+          <div style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:18, fontWeight:700, color:cor }}>@{m.odd_combinada}</div>
+          <div style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:9, color:'#5d6b7f' }}>ODD COMBINADA</div>
+        </div>
+      </div>
+      <div style={{ marginBottom:10 }}>
+        {(m.selecoes||[]).map((s,i)=>(
+          <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'5px 0', borderBottom:i<(m.selecoes.length-1)?'1px solid rgba(255,255,255,0.04)':'none' }}>
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:12, color:'#e8ecf0' }}>{s.jogo}</div>
+              <div style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:10, color:'#6b7280' }}>{s.mercado}</div>
+            </div>
+            <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+              <span style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:10, color:'#5d6b7f' }}>{s.confianca}%</span>
+              <span style={{ fontFamily:"'IBM Plex Mono',monospace", fontSize:11, color:'#4a9eff' }}>@{s.odd}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      {m.racional && <div style={{ fontSize:11.5, color:'#6b7280', lineHeight:1.5, marginBottom:10 }}>{m.racional}</div>}
+      <button onClick={()=>onBet(tipo, m)} style={{
+        width:'100%', background:`${cor}1a`, border:`1px solid ${cor}55`, borderRadius:8,
+        padding:'9px', color:cor, cursor:'pointer', fontFamily:"'IBM Plex Mono',monospace",
+        fontSize:11, fontWeight:600
+      }}>💸 Apostar nesta múltipla</button>
+    </div>
+  );
+}
+
 function MatchCard({ m, rank, onBet }) {
   const [open, setOpen] = useState(false);
   const conf  = m.confianca_maxima || bestConf(m);
